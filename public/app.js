@@ -11,9 +11,7 @@ const els = {
   players: document.querySelector("#players"),
   resetGame: document.querySelector("#resetGame"),
   roomLabel: document.querySelector("#roomLabel"),
-  turnPanel: document.querySelector(".turnPanel"),
   teamChoices: [...document.querySelectorAll(".teamChoice")],
-  turnOrder: document.querySelector("#turnOrder"),
   username: document.querySelector("#username"),
   warmScore: document.querySelector("#warmScore"),
   coolScore: document.querySelector("#coolScore"),
@@ -125,7 +123,6 @@ function render() {
   els.joinForm.hidden = Boolean(me) || state.phase !== "lobby";
   els.resetGame.disabled = !state.players.some((player) => player.id === playerId);
   els.resetGame.hidden = els.resetGame.disabled;
-  els.turnPanel.hidden = state.phase === "lobby";
 
   const oldBoard = previousBoard;
   els.board.innerHTML = "";
@@ -161,16 +158,18 @@ function render() {
   });
 
   renderPlayers();
-  renderTurnOrder();
   previousBoard = [...state.board];
 }
 
 function renderPlayers() {
   els.players.innerHTML = "";
-  for (const color of colors) {
+  const ordered = orderedTurns();
+  for (const [index, color] of ordered.entries()) {
     const player = state.players.find((candidate) => candidate.color === color);
     const row = document.createElement("div");
     row.className = "player";
+    row.dataset.color = color;
+    row.classList.toggle("active", state.phase === "playing" && index === 0);
 
     const identity = document.createElement("div");
     identity.className = "identity";
@@ -185,6 +184,9 @@ function renderPlayers() {
 
     const badges = document.createElement("div");
     badges.className = "badges";
+    if (state.phase === "lobby") {
+      badges.append(createBadge(String(index + 1)));
+    }
     if (player?.id === playerId) {
       badges.append(createBadge("You"));
     }
@@ -215,29 +217,6 @@ function displayMessage(me) {
     return "Game in progress";
   }
   return me.color === state.turn ? "Your move" : "Waiting";
-}
-
-function renderTurnOrder() {
-  els.turnOrder.innerHTML = "";
-  const ordered = orderedTurns();
-  for (const [index, color] of ordered.entries()) {
-    const player = state.players.find((candidate) => candidate.color === color);
-    const item = document.createElement("div");
-    item.className = "turnItem";
-    item.dataset.color = color;
-    item.classList.toggle("active", index === 0 && state.phase === "playing");
-
-    const dot = document.createElement("span");
-    dot.className = "dot";
-    const prefix = document.createElement("small");
-    prefix.textContent = state.phase === "playing" ? (index === 0 ? "Now" : "Next") : `${index + 1}`;
-    const label = document.createElement("span");
-    label.textContent = player ? player.name : "Open";
-
-    item.setAttribute("aria-label", `${index === 0 ? "Current turn" : "Upcoming turn"}: ${colorLabels[color]}`);
-    item.append(dot, prefix, label);
-    els.turnOrder.append(item);
-  }
 }
 
 function orderedTurns() {
