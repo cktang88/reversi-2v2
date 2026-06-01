@@ -13,6 +13,7 @@ const els = {
   resetGame: document.querySelector("#resetGame"),
   roomLabel: document.querySelector("#roomLabel"),
   teamChoices: [...document.querySelectorAll(".teamChoice")],
+  turnOrder: document.querySelector("#turnOrder"),
   username: document.querySelector("#username"),
   warmScore: document.querySelector("#warmScore"),
   coolScore: document.querySelector("#coolScore"),
@@ -140,6 +141,7 @@ function render() {
   });
 
   renderPlayers();
+  renderTurnOrder();
 }
 
 function renderPlayers() {
@@ -175,6 +177,25 @@ function renderPlayers() {
 
     row.append(identity, meta);
     els.players.append(row);
+  }
+}
+
+function renderTurnOrder() {
+  els.turnOrder.innerHTML = "";
+  for (const color of colors) {
+    const player = state.players.find((candidate) => candidate.color === color);
+    const item = document.createElement("div");
+    item.className = "turnItem";
+    item.dataset.color = color;
+    item.classList.toggle("active", state.phase === "playing" && state.turn === color);
+
+    const dot = document.createElement("span");
+    dot.className = "dot";
+    const label = document.createElement("span");
+    label.textContent = player ? `${colorLabels[color]} · ${player.name}` : colorLabels[color];
+
+    item.append(dot, label);
+    els.turnOrder.append(item);
   }
 }
 

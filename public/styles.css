@@ -150,6 +150,7 @@ input {
 
 .status,
 .scoreboard,
+.turnPanel,
 .players {
   margin-top: 16px;
   border-top: 1px solid var(--line);
@@ -169,6 +170,45 @@ input {
 .scoreboard {
   display: grid;
   gap: 8px;
+}
+
+.sectionLabel {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.turnOrder {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.turnItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0 8px;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.turnItem span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.turnItem.active {
+  border-color: var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  font-weight: 700;
 }
 
 .scoreboard div,
@@ -349,6 +389,7 @@ input {
 
   .status,
   .scoreboard,
+  .turnPanel,
   .players {
     margin-top: 12px;
     padding-top: 12px;
