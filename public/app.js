@@ -142,6 +142,7 @@ function render() {
     button.className = "cell";
     button.disabled = !legal.has(index);
     button.classList.toggle("legal", legal.has(index));
+    button.classList.toggle("lastMove", state.lastMove === index);
     button.setAttribute("aria-label", cell ? `${colorLabels[cell]} disc` : `Empty square ${index + 1}`);
 
     if (cell) {

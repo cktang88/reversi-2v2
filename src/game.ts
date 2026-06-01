@@ -19,6 +19,7 @@ export interface GameState {
   board: Cell[];
   players: Player[];
   turn: DiscColor;
+  lastMove: number | null;
   winner: Team | "tie" | null;
   message: string;
   updatedAt: number;
@@ -58,6 +59,7 @@ export function createGameState(): GameState {
     board: createInitialBoard(),
     players: [],
     turn: "red",
+    lastMove: null,
     winner: null,
     message: "Waiting for two warm and two cool players.",
     updatedAt: Date.now(),
@@ -204,6 +206,7 @@ export function applyMove(state: GameState, playerId: string, moveIndex: number)
   }
 
   state.board[moveIndex] = player.color;
+  state.lastMove = moveIndex;
   for (const capture of captures) {
     state.board[capture] = player.color;
   }
@@ -216,6 +219,7 @@ export function resetGame(state: GameState): void {
   state.board = createInitialBoard();
   state.phase = state.players.length === 4 ? "playing" : "lobby";
   state.turn = "red";
+  state.lastMove = null;
   state.winner = null;
   state.message = state.phase === "playing" ? "Red to move." : "Waiting for two warm and two cool players.";
 }

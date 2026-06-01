@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createGameState, getCaptures, indexOf, joinTeam, leaveSeat, legalMoves } from "../src/game";
+import { applyMove, createGameState, getCaptures, indexOf, joinTeam, leaveSeat, legalMoves, resetGame } from "../src/game";
 
 describe("cross-capture rules", () => {
   it("allows a partner disc to terminate a capture line", () => {
@@ -68,5 +68,20 @@ describe("cross-capture rules", () => {
     expect(state.phase).toBe("lobby");
     expect(state.players.map((player) => player.id)).toEqual(["b", "c", "d"]);
     expect(state.board[indexOf(0, 0)]).toBe("red");
+  });
+
+  it("records and clears the last placed square", () => {
+    const state = createGameState();
+    joinTeam(state, "a", "Ada", "warm");
+    joinTeam(state, "b", "Ben", "warm");
+    joinTeam(state, "c", "Cam", "cool");
+    joinTeam(state, "d", "Dee", "cool");
+    const move = legalMoves(state.board, "red")[0];
+
+    expect(applyMove(state, "a", move)).toBe(true);
+    expect(state.lastMove).toBe(move);
+
+    resetGame(state);
+    expect(state.lastMove).toBeNull();
   });
 });
