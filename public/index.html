@@ -27,8 +27,18 @@
               <input id="username" name="username" maxlength="24" autocomplete="nickname" required />
             </label>
             <div class="teamPicker" role="group" aria-label="Pick a team">
-              <button type="button" class="teamChoice warm selected" data-team="warm">Red + Orange</button>
-              <button type="button" class="teamChoice cool" data-team="cool">Blue + Cyan</button>
+              <button type="button" class="teamChoice warm selected" data-team="warm" aria-label="Join red and orange team">
+                <span class="teamSwatches" aria-hidden="true">
+                  <span class="dot" data-color="red"></span>
+                  <span class="dot" data-color="orange"></span>
+                </span>
+              </button>
+              <button type="button" class="teamChoice cool" data-team="cool" aria-label="Join blue and cyan team">
+                <span class="teamSwatches" aria-hidden="true">
+                  <span class="dot" data-color="blue"></span>
+                  <span class="dot" data-color="cyan"></span>
+                </span>
+              </button>
             </div>
             <button type="submit" class="joinButton">Join room</button>
           </form>
@@ -38,22 +48,29 @@
             <div id="message"></div>
           </div>
 
-          <div class="scoreboard">
-            <div>
-              <span>Red + Orange</span>
+          <div class="scorePanel">
+            <div class="scoreRow" aria-label="Warm team score">
+              <span class="teamSwatches" aria-hidden="true">
+                <span class="dot" data-color="red"></span>
+                <span class="dot" data-color="orange"></span>
+              </span>
               <strong id="warmScore">0</strong>
             </div>
-            <div>
-              <span>Blue + Cyan</span>
+            <div class="scoreRow" aria-label="Cool team score">
+              <span class="teamSwatches" aria-hidden="true">
+                <span class="dot" data-color="blue"></span>
+                <span class="dot" data-color="cyan"></span>
+              </span>
               <strong id="coolScore">0</strong>
             </div>
           </div>
 
           <div class="turnPanel">
-            <div class="sectionLabel">Turn order</div>
+            <div class="sectionLabel">Turn</div>
             <div id="turnOrder" class="turnOrder" aria-label="Turn order"></div>
           </div>
 
+          <div class="sectionLabel seatsLabel">Seats</div>
           <div class="players" id="players"></div>
         </aside>
 

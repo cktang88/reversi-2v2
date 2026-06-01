@@ -1,6 +1,5 @@
 const colors = ["red", "blue", "orange", "cyan"];
 const colorLabels = { red: "Red", orange: "Orange", blue: "Blue", cyan: "Cyan" };
-const teamLabels = { warm: "Red + Orange", cool: "Blue + Cyan" };
 const teams = { red: "warm", orange: "warm", blue: "cool", cyan: "cool" };
 
 const els = {
@@ -112,7 +111,7 @@ function render() {
   const legal = new Set(me?.color === state.turn && state.phase === "playing" ? legalMoves(state.board, me.color) : []);
   const counts = score(state.board);
 
-  els.message.textContent = state.message;
+  els.message.textContent = displayMessage(me);
   els.warmScore.textContent = String(counts.red + counts.orange);
   els.coolScore.textContent = String(counts.blue + counts.cyan);
   els.joinForm.hidden = Boolean(me) || state.phase !== "lobby";
@@ -171,44 +170,79 @@ function renderPlayers() {
     dot.className = "dot";
     const name = document.createElement("span");
     name.className = "name";
-    name.textContent = player ? player.name : "Open seat";
+    name.textContent = player ? player.name : "Open";
     identity.append(dot, name);
 
-    const meta = document.createElement("small");
-    const parts = [colorLabels[color], teamLabels[teams[color]]];
+    const badges = document.createElement("div");
+    badges.className = "badges";
     if (player?.id === playerId) {
-      parts.push("you");
+      badges.append(createBadge("You"));
     }
     if (player && !online.includes(player.id)) {
-      parts.push("offline");
+      badges.append(createBadge("Away"));
     }
     if (state.turn === color && state.phase === "playing") {
-      parts.push("turn");
+      badges.append(createBadge("Now"));
     }
-    meta.textContent = parts.join(" · ");
 
-    row.append(identity, meta);
+    row.setAttribute(
+      "aria-label",
+      `${colorLabels[color]} seat: ${player ? player.name : "open"}${state.turn === color ? ", current turn" : ""}`,
+    );
+    row.append(identity, badges);
     els.players.append(row);
   }
 }
 
+function displayMessage(me) {
+  if (state.phase === "lobby") {
+    return `${state.players.length}/4 seated`;
+  }
+  if (state.phase === "finished") {
+    return state.winner === "tie" ? "Tie game" : "Game over";
+  }
+  if (!me) {
+    return "Game in progress";
+  }
+  return me.color === state.turn ? "Your move" : "Waiting";
+}
+
 function renderTurnOrder() {
   els.turnOrder.innerHTML = "";
-  for (const color of colors) {
+  const ordered = orderedTurns();
+  for (const [index, color] of ordered.entries()) {
     const player = state.players.find((candidate) => candidate.color === color);
     const item = document.createElement("div");
     item.className = "turnItem";
     item.dataset.color = color;
-    item.classList.toggle("active", state.phase === "playing" && state.turn === color);
+    item.classList.toggle("active", index === 0 && state.phase === "playing");
 
     const dot = document.createElement("span");
     dot.className = "dot";
+    const prefix = document.createElement("small");
+    prefix.textContent = state.phase === "playing" ? (index === 0 ? "Now" : "Next") : `${index + 1}`;
     const label = document.createElement("span");
-    label.textContent = player ? `${colorLabels[color]} · ${player.name}` : colorLabels[color];
+    label.textContent = player ? player.name : "Open";
 
-    item.append(dot, label);
+    item.setAttribute("aria-label", `${index === 0 ? "Current turn" : "Upcoming turn"}: ${colorLabels[color]}`);
+    item.append(dot, prefix, label);
     els.turnOrder.append(item);
   }
+}
+
+function orderedTurns() {
+  if (state.phase !== "playing") {
+    return colors;
+  }
+  const start = colors.indexOf(state.turn);
+  return [...colors.slice(start), ...colors.slice(0, start)];
+}
+
+function createBadge(text) {
+  const badge = document.createElement("span");
+  badge.className = "badge";
+  badge.textContent = text;
+  return badge;
 }
 
 function score(board) {
