@@ -168,6 +168,23 @@ export function joinTeam(state: GameState, id: string, name: string, team: Team,
   return player;
 }
 
+export function leaveSeat(state: GameState, id: string): boolean {
+  const index = state.players.findIndex((player) => player.id === id);
+  if (index === -1) {
+    return false;
+  }
+
+  state.players.splice(index, 1);
+  state.winner = null;
+
+  if (state.players.length < 4) {
+    state.phase = "lobby";
+    state.message = "Waiting for two warm and two cool players.";
+  }
+
+  return true;
+}
+
 export function applyMove(state: GameState, playerId: string, moveIndex: number): boolean {
   if (state.phase !== "playing") {
     state.message = "The game has not started yet.";

@@ -7,6 +7,7 @@ const els = {
   connection: document.querySelector("#connection"),
   copyLink: document.querySelector("#copyLink"),
   joinForm: document.querySelector("#joinForm"),
+  leaveSeat: document.querySelector("#leaveSeat"),
   message: document.querySelector("#message"),
   players: document.querySelector("#players"),
   resetGame: document.querySelector("#resetGame"),
@@ -65,6 +66,12 @@ els.joinForm.addEventListener("submit", (event) => {
   send({ type: "join", playerId, name, team: selectedTeam });
 });
 
+els.leaveSeat.addEventListener("click", () => {
+  send({ type: "leave", playerId });
+  playerId = crypto.randomUUID();
+  localStorage.setItem("crossCapturePlayerId", playerId);
+});
+
 function connect() {
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";
   socket = new WebSocket(`${protocol}//${location.host}/ws/${roomId}`);
@@ -121,6 +128,7 @@ function render() {
   els.warmScore.textContent = String(counts.red + counts.orange);
   els.coolScore.textContent = String(counts.blue + counts.cyan);
   els.joinForm.hidden = Boolean(me) || state.phase !== "lobby";
+  els.leaveSeat.hidden = !me;
   els.resetGame.disabled = !state.players.some((player) => player.id === playerId);
   els.resetGame.hidden = els.resetGame.disabled;
 

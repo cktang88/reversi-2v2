@@ -1,5 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
-import { applyMove, createGameState, GameState, joinTeam, resetGame, Team } from "./game";
+import { applyMove, createGameState, GameState, joinTeam, leaveSeat, resetGame, Team } from "./game";
 
 interface Env {
   ASSETS: Fetcher;
@@ -8,6 +8,7 @@ interface Env {
 
 type ClientMessage =
   | { type: "join"; playerId: string; name: string; team: Team }
+  | { type: "leave"; playerId: string }
   | { type: "move"; playerId: string; index: number }
   | { type: "reset" };
 
@@ -75,6 +76,13 @@ export class GameRoom extends DurableObject<Env> {
 
     if (parsed.type === "move") {
       changed = applyMove(this.state, parsed.playerId, parsed.index);
+    }
+
+    if (parsed.type === "leave") {
+      changed = leaveSeat(this.state, parsed.playerId);
+      if (changed) {
+        ws.serializeAttachment({} satisfies SocketAttachment);
+      }
     }
 
     if (parsed.type === "reset") {
