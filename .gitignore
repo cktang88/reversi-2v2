@@ -1,4 +1,5 @@
 node_modules/
 .wrangler/
 *.png
+!docs/*.png
 .DS_Store
