@@ -11,6 +11,7 @@ const els = {
   players: document.querySelector("#players"),
   resetGame: document.querySelector("#resetGame"),
   roomLabel: document.querySelector("#roomLabel"),
+  turnPanel: document.querySelector(".turnPanel"),
   teamChoices: [...document.querySelectorAll(".teamChoice")],
   turnOrder: document.querySelector("#turnOrder"),
   username: document.querySelector("#username"),
@@ -71,7 +72,7 @@ function connect() {
   socket = new WebSocket(`${protocol}//${location.host}/ws/${roomId}`);
 
   socket.addEventListener("open", () => {
-    els.connection.textContent = "Connected";
+    setConnection("");
     const name = els.username.value.trim();
     if (name) {
       send({ type: "join", playerId, name, team: selectedTeam });
@@ -79,7 +80,7 @@ function connect() {
   });
 
   socket.addEventListener("close", () => {
-    els.connection.textContent = "Disconnected. Reconnecting...";
+    setConnection("Reconnecting...");
     setTimeout(connect, 800);
   });
 
@@ -94,6 +95,11 @@ function connect() {
       els.message.textContent = message.message;
     }
   });
+}
+
+function setConnection(message) {
+  els.connection.textContent = message;
+  els.connection.hidden = !message;
 }
 
 function send(message) {
@@ -111,11 +117,15 @@ function render() {
   const legal = new Set(me?.color === state.turn && state.phase === "playing" ? legalMoves(state.board, me.color) : []);
   const counts = score(state.board);
 
+  document.body.classList.toggle("is-lobby", state.phase === "lobby");
+  document.body.classList.toggle("needs-join", state.phase === "lobby" && !me);
   els.message.textContent = displayMessage(me);
   els.warmScore.textContent = String(counts.red + counts.orange);
   els.coolScore.textContent = String(counts.blue + counts.cyan);
   els.joinForm.hidden = Boolean(me) || state.phase !== "lobby";
   els.resetGame.disabled = !state.players.some((player) => player.id === playerId);
+  els.resetGame.hidden = els.resetGame.disabled;
+  els.turnPanel.hidden = state.phase === "lobby";
 
   const oldBoard = previousBoard;
   els.board.innerHTML = "";
