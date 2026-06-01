@@ -326,15 +326,16 @@ input {
 }
 
 .cell.legal {
-  background: #f1d99d;
+  background: #caa96a;
 }
 
 .cell.legal::after {
   content: "";
   position: absolute;
-  inset: 38%;
+  inset: 34%;
   border-radius: 50%;
-  background: rgba(28, 35, 38, 0.32);
+  border: 2px solid rgba(26, 24, 20, 0.42);
+  background: rgba(26, 24, 20, 0.24);
 }
 
 .disc {
