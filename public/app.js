@@ -24,6 +24,7 @@ let selectedTeam = "warm";
 let socket;
 let state;
 let online = [];
+let previousBoard = null;
 let playerId = localStorage.getItem("crossCapturePlayerId");
 
 if (!playerId) {
@@ -117,8 +118,11 @@ function render() {
   els.joinForm.hidden = Boolean(me) || state.phase !== "lobby";
   els.resetGame.disabled = !state.players.some((player) => player.id === playerId);
 
+  const oldBoard = previousBoard;
   els.board.innerHTML = "";
   state.board.forEach((cell, index) => {
+    const oldCell = oldBoard?.[index] ?? null;
+    const changed = Boolean(oldBoard) && oldCell !== cell;
     const button = document.createElement("button");
     button.type = "button";
     button.className = "cell";
@@ -129,6 +133,13 @@ function render() {
     if (cell) {
       const disc = document.createElement("span");
       disc.className = "disc";
+      if (changed && oldCell) {
+        disc.classList.add("flip");
+        disc.dataset.previousColor = oldCell;
+      }
+      if (changed && !oldCell) {
+        disc.classList.add("place");
+      }
       disc.dataset.color = cell;
       button.append(disc);
     }
@@ -142,6 +153,7 @@ function render() {
 
   renderPlayers();
   renderTurnOrder();
+  previousBoard = [...state.board];
 }
 
 function renderPlayers() {
