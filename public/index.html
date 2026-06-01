@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cross-capture Reversi</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="topbar">
+        <div>
+          <h1>Cross-capture Reversi</h1>
+          <p id="roomLabel"></p>
+        </div>
+        <div class="actions">
+          <button id="copyLink" type="button">Copy link</button>
+          <button id="resetGame" type="button">Reset</button>
+        </div>
+      </section>
+
+      <section class="layout">
+        <aside class="panel">
+          <form id="joinForm" class="join">
+            <label>
+              Username
+              <input id="username" name="username" maxlength="24" autocomplete="nickname" required />
+            </label>
+            <div class="teamPicker" role="group" aria-label="Pick a team">
+              <button type="button" class="teamChoice warm selected" data-team="warm">Red + Orange</button>
+              <button type="button" class="teamChoice cool" data-team="cool">Blue + Cyan</button>
+            </div>
+            <button type="submit" class="joinButton">Join room</button>
+          </form>
+
+          <div class="status">
+            <div id="connection">Connecting...</div>
+            <div id="message"></div>
+          </div>
+
+          <div class="scoreboard">
+            <div>
+              <span>Red + Orange</span>
+              <strong id="warmScore">0</strong>
+            </div>
+            <div>
+              <span>Blue + Cyan</span>
+              <strong id="coolScore">0</strong>
+            </div>
+          </div>
+
+          <div class="players" id="players"></div>
+        </aside>
+
+        <section class="boardWrap">
+          <div id="board" class="board" aria-label="Game board"></div>
+        </section>
+      </section>
+    </main>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
