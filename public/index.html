@@ -14,7 +14,12 @@
           <p id="roomLabel"></p>
         </div>
         <div class="actions">
+          <button id="rulesButton" class="iconButton" type="button" aria-label="Show rules">?</button>
           <button id="copyLink" type="button">Copy link</button>
+          <select id="variantSelect" aria-label="Reset ruleset">
+            <option value="standard">Standard</option>
+            <option value="experimental">Experimental</option>
+          </select>
           <button id="resetGame" type="button">Reset</button>
         </div>
       </section>
@@ -74,6 +79,12 @@
           <div id="board" class="board" aria-label="Game board"></div>
         </section>
       </section>
+      <dialog id="rulesDialog" class="rulesDialog">
+        <form method="dialog">
+          <button class="closeButton" type="submit" aria-label="Close rules">×</button>
+        </form>
+        <div id="rulesContent"></div>
+      </dialog>
     </main>
     <script src="/app.js" type="module"></script>
   </body>

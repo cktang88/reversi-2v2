@@ -6,6 +6,7 @@ export type DiscColor = (typeof colors)[number];
 export type Team = "warm" | "cool";
 export type Cell = DiscColor | null;
 export type Phase = "lobby" | "playing" | "finished";
+export type GameVariant = "standard" | "experimental";
 
 export interface Player {
   id: string;
@@ -15,6 +16,7 @@ export interface Player {
 }
 
 export interface GameState {
+  variant: GameVariant;
   phase: Phase;
   board: Cell[];
   players: Player[];
@@ -55,6 +57,7 @@ export function createInitialBoard(): Cell[] {
 
 export function createGameState(): GameState {
   return {
+    variant: "standard",
     phase: "lobby",
     board: createInitialBoard(),
     players: [],
@@ -74,13 +77,14 @@ export function xyOf(index: number): [number, number] {
   return [index % 8, Math.floor(index / 8)];
 }
 
-export function getCaptures(board: Cell[], mover: DiscColor, moveIndex: number): number[] {
+export function getCaptures(board: Cell[], mover: DiscColor, moveIndex: number, variant: GameVariant = "standard"): number[] {
   if (moveIndex < 0 || moveIndex >= 64 || board[moveIndex] !== null) {
     return [];
   }
 
   const [startX, startY] = xyOf(moveIndex);
   const moverTeam = teamFor(mover);
+  const anchorColors = allowedAnchorColors(mover, variant);
   const captures: number[] = [];
 
   for (const [dx, dy] of directions) {
@@ -98,7 +102,9 @@ export function getCaptures(board: Cell[], mover: DiscColor, moveIndex: number):
 
       if (teamFor(cell) === moverTeam) {
         if (line.length > 0) {
-          captures.push(...line);
+          if (anchorColors.has(cell)) {
+            captures.push(...line);
+          }
         }
         break;
       }
@@ -112,8 +118,13 @@ export function getCaptures(board: Cell[], mover: DiscColor, moveIndex: number):
   return captures;
 }
 
-export function legalMoves(board: Cell[], mover: DiscColor): number[] {
-  return board.flatMap((cell, index) => (cell === null && getCaptures(board, mover, index).length > 0 ? [index] : []));
+export function legalMoves(board: Cell[], mover: DiscColor, variant: GameVariant = "standard"): number[] {
+  return board.flatMap((cell, index) => (cell === null && getCaptures(board, mover, index, variant).length > 0 ? [index] : []));
+}
+
+export function allowedAnchorColors(mover: DiscColor, variant: GameVariant): Set<DiscColor> {
+  const teammate = teamColors(teamFor(mover)).find((color) => color !== mover);
+  return new Set(variant === "experimental" && teammate ? [teammate] : teamColors(teamFor(mover)));
 }
 
 export function cleanPlayerName(name: string): string {
@@ -199,7 +210,7 @@ export function applyMove(state: GameState, playerId: string, moveIndex: number)
     return false;
   }
 
-  const captures = getCaptures(state.board, player.color, moveIndex);
+  const captures = getCaptures(state.board, player.color, moveIndex, state.variant);
   if (captures.length === 0) {
     state.message = "That move does not capture any enemy discs.";
     return false;
@@ -215,7 +226,8 @@ export function applyMove(state: GameState, playerId: string, moveIndex: number)
   return true;
 }
 
-export function resetGame(state: GameState): void {
+export function resetGame(state: GameState, variant: GameVariant = state.variant): void {
+  state.variant = variant;
   state.board = createInitialBoard();
   state.phase = state.players.length === 4 ? "playing" : "lobby";
   state.turn = "red";
@@ -251,7 +263,7 @@ function advanceTurn(state: GameState): void {
 
   for (let offset = 1; offset <= colors.length; offset += 1) {
     const next = colors[(start + offset) % colors.length];
-    if (legalMoves(state.board, next).length > 0) {
+    if (legalMoves(state.board, next, state.variant).length > 0) {
       state.turn = next;
       state.message = `${labelColor(next)} to move.`;
       return;

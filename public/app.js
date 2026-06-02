@@ -1,6 +1,7 @@
 const colors = ["red", "blue", "orange", "cyan"];
 const colorLabels = { red: "Red", orange: "Orange", blue: "Blue", cyan: "Cyan" };
 const teams = { red: "warm", orange: "warm", blue: "cool", cyan: "cool" };
+const variantLabels = { standard: "Standard 2v2", experimental: "Experimental 2v2" };
 
 const els = {
   board: document.querySelector("#board"),
@@ -11,9 +12,13 @@ const els = {
   message: document.querySelector("#message"),
   players: document.querySelector("#players"),
   resetGame: document.querySelector("#resetGame"),
+  rulesButton: document.querySelector("#rulesButton"),
+  rulesContent: document.querySelector("#rulesContent"),
+  rulesDialog: document.querySelector("#rulesDialog"),
   roomLabel: document.querySelector("#roomLabel"),
   teamChoices: [...document.querySelectorAll(".teamChoice")],
   username: document.querySelector("#username"),
+  variantSelect: document.querySelector("#variantSelect"),
   warmScore: document.querySelector("#warmScore"),
   coolScore: document.querySelector("#coolScore"),
 };
@@ -52,7 +57,12 @@ els.copyLink.addEventListener("click", async () => {
 });
 
 els.resetGame.addEventListener("click", () => {
-  send({ type: "reset" });
+  send({ type: "reset", variant: els.variantSelect.value });
+});
+
+els.rulesButton.addEventListener("click", () => {
+  renderRules();
+  els.rulesDialog.showModal();
 });
 
 els.joinForm.addEventListener("submit", (event) => {
@@ -119,7 +129,8 @@ function render() {
   }
 
   const me = state.players.find((player) => player.id === playerId);
-  const legal = new Set(me?.color === state.turn && state.phase === "playing" ? legalMoves(state.board, me.color) : []);
+  const variant = state.variant || "standard";
+  const legal = new Set(me?.color === state.turn && state.phase === "playing" ? legalMoves(state.board, me.color, variant) : []);
   const counts = score(state.board);
 
   document.body.classList.toggle("is-lobby", state.phase === "lobby");
@@ -131,6 +142,8 @@ function render() {
   els.leaveSeat.hidden = !me;
   els.resetGame.disabled = !state.players.some((player) => player.id === playerId);
   els.resetGame.hidden = els.resetGame.disabled;
+  els.variantSelect.hidden = els.resetGame.hidden;
+  els.variantSelect.value = variant;
 
   const oldBoard = previousBoard;
   els.board.innerHTML = "";
@@ -228,6 +241,25 @@ function displayMessage(me) {
   return me.color === state.turn ? "Your move" : "Waiting";
 }
 
+function renderRules() {
+  const variant = state?.variant || "standard";
+  const shared = `
+    <p>Teams are paired dots. Partner discs are friendly and are never flipped.</p>
+    <p>Captured enemy discs become the mover's color. The roster shows the current turn at the top.</p>
+  `;
+  const variantText =
+    variant === "experimental"
+      ? `
+        <p><strong>Restricted anchoring:</strong> your move must close a line on your partner's disc. Your own discs do not anchor captures.</p>
+        <p>If your color has been wiped out, you can still place by borrowing your partner's anchors until you get discs back.</p>
+      `
+      : `
+        <p><strong>Standard 2v2:</strong> you can close a capture line on either your own disc or your partner's disc.</p>
+      `;
+
+  els.rulesContent.innerHTML = `<h2>${variantLabels[variant]}</h2>${shared}${variantText}`;
+}
+
 function orderedTurns() {
   if (state.phase !== "playing") {
     return colors;
@@ -250,16 +282,17 @@ function score(board) {
   }, {});
 }
 
-function legalMoves(board, mover) {
-  return board.flatMap((cell, index) => (cell === null && captures(board, mover, index).length > 0 ? [index] : []));
+function legalMoves(board, mover, variant = "standard") {
+  return board.flatMap((cell, index) => (cell === null && captures(board, mover, index, variant).length > 0 ? [index] : []));
 }
 
-function captures(board, mover, moveIndex) {
+function captures(board, mover, moveIndex, variant = "standard") {
   if (board[moveIndex] !== null) {
     return [];
   }
 
   const moverTeam = teams[mover];
+  const anchors = allowedAnchors(mover, variant);
   const startX = moveIndex % 8;
   const startY = Math.floor(moveIndex / 8);
   const found = [];
@@ -286,7 +319,9 @@ function captures(board, mover, moveIndex) {
       }
       if (teams[cell] === moverTeam) {
         if (line.length) {
-          found.push(...line);
+          if (anchors.has(cell)) {
+            found.push(...line);
+          }
         }
         break;
       }
@@ -297,6 +332,14 @@ function captures(board, mover, moveIndex) {
   }
 
   return found;
+}
+
+function allowedAnchors(mover, variant) {
+  const friendly = colors.filter((color) => teams[color] === teams[mover]);
+  if (variant !== "experimental") {
+    return new Set(friendly);
+  }
+  return new Set(friendly.filter((color) => color !== mover));
 }
 
 connect();

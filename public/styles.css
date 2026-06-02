@@ -29,7 +29,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -39,6 +40,15 @@ button {
   color: var(--text);
   cursor: pointer;
   min-height: 40px;
+}
+
+select {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 0 10px;
 }
 
 button:hover {
@@ -94,6 +104,13 @@ p {
   color: var(--muted);
 }
 
+.iconButton {
+  width: 40px;
+  padding: 0;
+  border-radius: 50%;
+  font-weight: 800;
+}
+
 .joinButton {
   min-height: 48px;
   border-color: transparent;
@@ -121,6 +138,41 @@ p {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 16px;
+}
+
+.rulesDialog {
+  width: min(420px, calc(100vw - 32px));
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  padding: 20px;
+}
+
+.rulesDialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.rulesDialog h2 {
+  margin: 0 36px 12px 0;
+  font-size: 1.25rem;
+  letter-spacing: 0;
+}
+
+.rulesDialog p {
+  line-height: 1.5;
+}
+
+.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  padding: 0;
 }
 
 .join {
@@ -481,10 +533,19 @@ input {
 
   .actions {
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .actions button {
     flex: 1;
+  }
+
+  .actions .iconButton {
+    flex: 0 0 44px;
+  }
+
+  .actions select {
+    flex: 1 1 130px;
   }
 
   .panel {

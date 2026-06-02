@@ -22,6 +22,40 @@ describe("cross-capture rules", () => {
     expect(getCaptures(state.board, "red", indexOf(3, 0))).toEqual([]);
   });
 
+  it("standard rules allow self or partner anchors", () => {
+    const state = createGameState();
+    state.board = Array(64).fill(null);
+    state.board[indexOf(0, 0)] = "red";
+    state.board[indexOf(1, 0)] = "blue";
+    expect(getCaptures(state.board, "red", indexOf(2, 0), "standard")).toEqual([indexOf(1, 0)]);
+
+    state.board[indexOf(0, 1)] = "orange";
+    state.board[indexOf(1, 1)] = "cyan";
+    expect(getCaptures(state.board, "red", indexOf(2, 1), "standard")).toEqual([indexOf(1, 1)]);
+  });
+
+  it("experimental rules allow partner anchors but not self anchors", () => {
+    const state = createGameState();
+    state.board = Array(64).fill(null);
+    state.board[indexOf(0, 0)] = "red";
+    state.board[indexOf(1, 0)] = "blue";
+    state.board[indexOf(0, 1)] = "orange";
+    state.board[indexOf(1, 1)] = "cyan";
+
+    expect(getCaptures(state.board, "red", indexOf(2, 0), "experimental")).toEqual([]);
+    expect(getCaptures(state.board, "red", indexOf(2, 1), "experimental")).toEqual([indexOf(1, 1)]);
+  });
+
+  it("experimental rules let a wiped-out player borrow teammate anchors", () => {
+    const state = createGameState();
+    state.board = Array(64).fill(null);
+    state.board[indexOf(0, 0)] = "orange";
+    state.board[indexOf(1, 0)] = "blue";
+
+    expect(state.board.includes("red")).toBe(false);
+    expect(legalMoves(state.board, "red", "experimental")).toContain(indexOf(2, 0));
+  });
+
   it("starts once each team has two players", () => {
     const state = createGameState();
     joinTeam(state, "a", "Ada", "warm");
@@ -83,5 +117,13 @@ describe("cross-capture rules", () => {
 
     resetGame(state);
     expect(state.lastMove).toBeNull();
+  });
+
+  it("reset can switch rulesets", () => {
+    const state = createGameState();
+    resetGame(state, "experimental");
+    expect(state.variant).toBe("experimental");
+    resetGame(state, "standard");
+    expect(state.variant).toBe("standard");
   });
 });
