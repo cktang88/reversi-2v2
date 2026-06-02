@@ -1,5 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
-import { applyMove, createGameState, GameState, GameVariant, joinTeam, leaveSeat, resetGame, Team } from "./game";
+import { applyMove, createGameState, GameState, GameVariant, joinTeam, leaveSeat, normalizeVariant, resetGame, Team } from "./game";
 
 interface Env {
   ASSETS: Fetcher;
@@ -24,7 +24,7 @@ export class GameRoom extends DurableObject<Env> {
     super(ctx, env);
     this.initialized = ctx.blockConcurrencyWhile(async () => {
       this.state = (await this.ctx.storage.get<GameState>("state")) ?? createGameState();
-      this.state.variant ??= "standard";
+      this.state.variant = normalizeVariant(this.state.variant);
       this.state.lastMove ??= null;
     });
   }
@@ -88,7 +88,7 @@ export class GameRoom extends DurableObject<Env> {
     }
 
     if (parsed.type === "reset") {
-      resetGame(this.state, parsed.variant ?? this.state.variant);
+      resetGame(this.state, normalizeVariant(parsed.variant ?? this.state.variant));
       changed = true;
     }
 

@@ -34,7 +34,7 @@ describe("cross-capture rules", () => {
     expect(getCaptures(state.board, "red", indexOf(2, 1), "standard")).toEqual([indexOf(1, 1)]);
   });
 
-  it("experimental rules allow partner anchors but not self anchors", () => {
+  it("partner-anchor rules allow partner anchors but not self anchors", () => {
     const state = createGameState();
     state.board = Array(64).fill(null);
     state.board[indexOf(0, 0)] = "red";
@@ -42,18 +42,40 @@ describe("cross-capture rules", () => {
     state.board[indexOf(0, 1)] = "orange";
     state.board[indexOf(1, 1)] = "cyan";
 
-    expect(getCaptures(state.board, "red", indexOf(2, 0), "experimental")).toEqual([]);
-    expect(getCaptures(state.board, "red", indexOf(2, 1), "experimental")).toEqual([indexOf(1, 1)]);
+    expect(getCaptures(state.board, "red", indexOf(2, 0), "partner-anchor")).toEqual([]);
+    expect(getCaptures(state.board, "red", indexOf(2, 1), "partner-anchor")).toEqual([indexOf(1, 1)]);
   });
 
-  it("experimental rules let a wiped-out player borrow teammate anchors", () => {
+  it("partner-anchor rules let a wiped-out player use teammate anchors", () => {
     const state = createGameState();
     state.board = Array(64).fill(null);
     state.board[indexOf(0, 0)] = "orange";
     state.board[indexOf(1, 0)] = "blue";
 
     expect(state.board.includes("red")).toBe(false);
-    expect(legalMoves(state.board, "red", "experimental")).toContain(indexOf(2, 0));
+    expect(legalMoves(state.board, "red", "partner-anchor")).toContain(indexOf(2, 0));
+  });
+
+  it("self-anchor rules allow self anchors but not partner anchors", () => {
+    const state = createGameState();
+    state.board = Array(64).fill(null);
+    state.board[indexOf(0, 0)] = "red";
+    state.board[indexOf(1, 0)] = "blue";
+    state.board[indexOf(0, 1)] = "orange";
+    state.board[indexOf(1, 1)] = "cyan";
+
+    expect(getCaptures(state.board, "red", indexOf(2, 0), "self-anchor")).toEqual([indexOf(1, 0)]);
+    expect(getCaptures(state.board, "red", indexOf(2, 1), "self-anchor")).toEqual([]);
+  });
+
+  it("self-anchor rules let a wiped-out player borrow teammate anchors", () => {
+    const state = createGameState();
+    state.board = Array(64).fill(null);
+    state.board[indexOf(0, 0)] = "orange";
+    state.board[indexOf(1, 0)] = "blue";
+
+    expect(state.board.includes("red")).toBe(false);
+    expect(legalMoves(state.board, "red", "self-anchor")).toContain(indexOf(2, 0));
   });
 
   it("starts once each team has two players", () => {
@@ -121,8 +143,10 @@ describe("cross-capture rules", () => {
 
   it("reset can switch rulesets", () => {
     const state = createGameState();
-    resetGame(state, "experimental");
-    expect(state.variant).toBe("experimental");
+    resetGame(state, "partner-anchor");
+    expect(state.variant).toBe("partner-anchor");
+    resetGame(state, "self-anchor");
+    expect(state.variant).toBe("self-anchor");
     resetGame(state, "standard");
     expect(state.variant).toBe("standard");
   });

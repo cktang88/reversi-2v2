@@ -6,7 +6,7 @@ export type DiscColor = (typeof colors)[number];
 export type Team = "warm" | "cool";
 export type Cell = DiscColor | null;
 export type Phase = "lobby" | "playing" | "finished";
-export type GameVariant = "standard" | "experimental";
+export type GameVariant = "standard" | "partner-anchor" | "self-anchor";
 
 export interface Player {
   id: string;
@@ -84,7 +84,7 @@ export function getCaptures(board: Cell[], mover: DiscColor, moveIndex: number, 
 
   const [startX, startY] = xyOf(moveIndex);
   const moverTeam = teamFor(mover);
-  const anchorColors = allowedAnchorColors(mover, variant);
+  const anchorColors = allowedAnchorColors(board, mover, variant);
   const captures: number[] = [];
 
   for (const [dx, dy] of directions) {
@@ -122,9 +122,23 @@ export function legalMoves(board: Cell[], mover: DiscColor, variant: GameVariant
   return board.flatMap((cell, index) => (cell === null && getCaptures(board, mover, index, variant).length > 0 ? [index] : []));
 }
 
-export function allowedAnchorColors(mover: DiscColor, variant: GameVariant): Set<DiscColor> {
+export function allowedAnchorColors(board: Cell[], mover: DiscColor, variant: GameVariant): Set<DiscColor> {
   const teammate = teamColors(teamFor(mover)).find((color) => color !== mover);
-  return new Set(variant === "experimental" && teammate ? [teammate] : teamColors(teamFor(mover)));
+  if (variant === "partner-anchor") {
+    return new Set(teammate ? [teammate] : []);
+  }
+  if (variant === "self-anchor") {
+    return new Set(board.includes(mover) || !teammate ? [mover] : [teammate]);
+  }
+  return new Set(teamColors(teamFor(mover)));
+}
+
+export function normalizeVariant(variant: unknown): GameVariant {
+  return variant === "partner-anchor" || variant === "experimental"
+    ? "partner-anchor"
+    : variant === "self-anchor"
+      ? "self-anchor"
+      : "standard";
 }
 
 export function cleanPlayerName(name: string): string {
@@ -227,7 +241,7 @@ export function applyMove(state: GameState, playerId: string, moveIndex: number)
 }
 
 export function resetGame(state: GameState, variant: GameVariant = state.variant): void {
-  state.variant = variant;
+  state.variant = normalizeVariant(variant);
   state.board = createInitialBoard();
   state.phase = state.players.length === 4 ? "playing" : "lobby";
   state.turn = "red";

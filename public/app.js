@@ -1,7 +1,11 @@
 const colors = ["red", "blue", "orange", "cyan"];
 const colorLabels = { red: "Red", orange: "Orange", blue: "Blue", cyan: "Cyan" };
 const teams = { red: "warm", orange: "warm", blue: "cool", cyan: "cool" };
-const variantLabels = { standard: "Standard 2v2", experimental: "Experimental 2v2" };
+const variantLabels = {
+  standard: "Standard 2v2",
+  "partner-anchor": "Partner-Anchor 2v2",
+  "self-anchor": "Self-Anchor 2v2",
+};
 
 const els = {
   board: document.querySelector("#board"),
@@ -129,7 +133,7 @@ function render() {
   }
 
   const me = state.players.find((player) => player.id === playerId);
-  const variant = state.variant || "standard";
+  const variant = normalizeVariant(state.variant);
   const legal = new Set(me?.color === state.turn && state.phase === "playing" ? legalMoves(state.board, me.color, variant) : []);
   const counts = score(state.board);
 
@@ -242,20 +246,23 @@ function displayMessage(me) {
 }
 
 function renderRules() {
-  const variant = state?.variant || "standard";
+  const variant = normalizeVariant(state?.variant);
   const shared = `
     <p>Teams are paired dots. Partner discs are friendly and are never flipped.</p>
     <p>Captured enemy discs become the mover's color. The roster shows the current turn at the top.</p>
   `;
-  const variantText =
-    variant === "experimental"
-      ? `
-        <p><strong>Restricted anchoring:</strong> your move must close a line on your partner's disc. Your own discs do not anchor captures.</p>
-        <p>If your color has been wiped out, you can still place by borrowing your partner's anchors until you get discs back.</p>
-      `
-      : `
-        <p><strong>Standard 2v2:</strong> you can close a capture line on either your own disc or your partner's disc.</p>
-      `;
+  const variantText = {
+    standard: `
+      <p><strong>Standard:</strong> you can close a capture line on either your own disc or your partner's disc.</p>
+    `,
+    "partner-anchor": `
+      <p><strong>Partner-Anchor:</strong> your move must close a line on your partner's disc. Your own discs do not anchor captures.</p>
+    `,
+    "self-anchor": `
+      <p><strong>Self-Anchor:</strong> your move must close a line on your own disc. Your partner's discs do not anchor captures.</p>
+      <p>If your color has been wiped out, you can borrow your partner's anchors until you get discs back.</p>
+    `,
+  }[variant];
 
   els.rulesContent.innerHTML = `<h2>${variantLabels[variant]}</h2>${shared}${variantText}`;
 }
@@ -292,7 +299,7 @@ function captures(board, mover, moveIndex, variant = "standard") {
   }
 
   const moverTeam = teams[mover];
-  const anchors = allowedAnchors(mover, variant);
+  const anchors = allowedAnchors(board, mover, variant);
   const startX = moveIndex % 8;
   const startY = Math.floor(moveIndex / 8);
   const found = [];
@@ -334,12 +341,26 @@ function captures(board, mover, moveIndex, variant = "standard") {
   return found;
 }
 
-function allowedAnchors(mover, variant) {
+function allowedAnchors(board, mover, variant) {
   const friendly = colors.filter((color) => teams[color] === teams[mover]);
-  if (variant !== "experimental") {
-    return new Set(friendly);
+  const teammate = friendly.find((color) => color !== mover);
+  if (variant === "partner-anchor") {
+    return new Set(teammate ? [teammate] : []);
   }
-  return new Set(friendly.filter((color) => color !== mover));
+  if (variant === "self-anchor") {
+    return new Set(board.includes(mover) || !teammate ? [mover] : [teammate]);
+  }
+  return new Set(friendly);
+}
+
+function normalizeVariant(variant) {
+  if (variant === "partner-anchor" || variant === "experimental") {
+    return "partner-anchor";
+  }
+  if (variant === "self-anchor") {
+    return "self-anchor";
+  }
+  return "standard";
 }
 
 connect();
