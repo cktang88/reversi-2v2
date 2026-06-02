@@ -78,6 +78,30 @@ describe("cross-capture rules", () => {
     expect(legalMoves(state.board, "red", "self-anchor")).toContain(indexOf(2, 0));
   });
 
+  it("legal move highlighting inputs match partner-anchor restrictions", () => {
+    const state = createGameState();
+    state.board = Array(64).fill(null);
+    state.board[indexOf(0, 0)] = "red";
+    state.board[indexOf(1, 0)] = "blue";
+    state.board[indexOf(0, 1)] = "orange";
+    state.board[indexOf(1, 1)] = "cyan";
+
+    expect(legalMoves(state.board, "red", "partner-anchor")).toEqual([indexOf(2, 1)]);
+  });
+
+  it("legal move highlighting inputs match self-anchor fallback restrictions", () => {
+    const state = createGameState();
+    state.board = Array(64).fill(null);
+    state.board[indexOf(0, 0)] = "orange";
+    state.board[indexOf(1, 0)] = "blue";
+
+    expect(legalMoves(state.board, "red", "self-anchor")).toEqual([indexOf(2, 0)]);
+
+    state.board[indexOf(7, 7)] = "red";
+
+    expect(legalMoves(state.board, "red", "self-anchor")).not.toContain(indexOf(2, 0));
+  });
+
   it("starts once each team has two players", () => {
     const state = createGameState();
     joinTeam(state, "a", "Ada", "warm");
