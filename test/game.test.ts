@@ -102,6 +102,28 @@ describe("cross-capture rules", () => {
     expect(legalMoves(state.board, "red", "self-anchor")).not.toContain(indexOf(2, 0));
   });
 
+  it("partner-anchor placement flips every team-anchored capture line", () => {
+    const state = createGameState();
+    state.board = Array(64).fill(null);
+    state.board[indexOf(0, 0)] = "red";
+    state.board[indexOf(0, 1)] = "blue";
+    state.board[indexOf(1, 2)] = "blue";
+    state.board[indexOf(2, 2)] = "orange";
+
+    expect(getCaptures(state.board, "red", indexOf(0, 2), "partner-anchor")).toEqual([indexOf(0, 1), indexOf(1, 2)]);
+  });
+
+  it("self-anchor placement flips every team-anchored capture line", () => {
+    const state = createGameState();
+    state.board = Array(64).fill(null);
+    state.board[indexOf(0, 0)] = "red";
+    state.board[indexOf(0, 1)] = "blue";
+    state.board[indexOf(1, 2)] = "blue";
+    state.board[indexOf(2, 2)] = "orange";
+
+    expect(getCaptures(state.board, "red", indexOf(0, 2), "self-anchor")).toEqual([indexOf(0, 1), indexOf(1, 2)]);
+  });
+
   it("starts once each team has two players", () => {
     const state = createGameState();
     joinTeam(state, "a", "Ada", "warm");

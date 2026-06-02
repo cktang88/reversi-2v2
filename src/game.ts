@@ -82,9 +82,17 @@ export function getCaptures(board: Cell[], mover: DiscColor, moveIndex: number, 
     return [];
   }
 
+  const legalAnchoredCaptures = collectCaptures(board, mover, moveIndex, allowedAnchorColors(board, mover, variant));
+  if (legalAnchoredCaptures.length === 0) {
+    return [];
+  }
+
+  return collectCaptures(board, mover, moveIndex, new Set(teamColors(teamFor(mover))));
+}
+
+function collectCaptures(board: Cell[], mover: DiscColor, moveIndex: number, anchorColors: Set<DiscColor>): number[] {
   const [startX, startY] = xyOf(moveIndex);
   const moverTeam = teamFor(mover);
-  const anchorColors = allowedAnchorColors(board, mover, variant);
   const captures: number[] = [];
 
   for (const [dx, dy] of directions) {

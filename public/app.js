@@ -306,8 +306,16 @@ function captures(board, mover, moveIndex, variant = "standard") {
     return [];
   }
 
+  const legalAnchoredCaptures = collectCaptures(board, mover, moveIndex, allowedAnchors(board, mover, variant));
+  if (!legalAnchoredCaptures.length) {
+    return [];
+  }
+
+  return collectCaptures(board, mover, moveIndex, new Set(colors.filter((color) => teams[color] === teams[mover])));
+}
+
+function collectCaptures(board, mover, moveIndex, anchors) {
   const moverTeam = teams[mover];
-  const anchors = allowedAnchors(board, mover, variant);
   const startX = moveIndex % 8;
   const startY = Math.floor(moveIndex / 8);
   const found = [];
