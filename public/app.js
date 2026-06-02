@@ -64,6 +64,12 @@ els.resetGame.addEventListener("click", () => {
   send({ type: "reset", variant: els.variantSelect.value });
 });
 
+els.variantSelect.addEventListener("change", () => {
+  if (state?.phase === "lobby") {
+    send({ type: "reset", variant: els.variantSelect.value });
+  }
+});
+
 els.rulesButton.addEventListener("click", () => {
   renderRules();
   els.rulesDialog.showModal();
@@ -146,7 +152,6 @@ function render() {
   els.leaveSeat.hidden = !me;
   els.resetGame.disabled = !state.players.some((player) => player.id === playerId);
   els.resetGame.hidden = els.resetGame.disabled;
-  els.variantSelect.hidden = els.resetGame.hidden;
   els.variantSelect.value = variant;
 
   const oldBoard = previousBoard;
