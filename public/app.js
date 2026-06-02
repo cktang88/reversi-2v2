@@ -68,6 +68,9 @@ els.variantSelect.addEventListener("change", () => {
   if (state?.phase === "lobby") {
     send({ type: "reset", variant: els.variantSelect.value });
   }
+  if (els.rulesDialog.open) {
+    renderRules();
+  }
 });
 
 els.rulesButton.addEventListener("click", () => {
@@ -251,7 +254,7 @@ function displayMessage(me) {
 }
 
 function renderRules() {
-  const variant = normalizeVariant(state?.variant);
+  const variant = normalizeVariant(els.variantSelect.value || state?.variant);
   const shared = `
     <p>Teams are paired dots. Partner discs are friendly and are never flipped.</p>
     <p>Captured enemy discs become the mover's color. The roster shows the current turn at the top.</p>
